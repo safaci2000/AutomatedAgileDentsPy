@@ -26,13 +26,17 @@ def sendEmail(body):
     now = datetime.datetime.now()
     date = now.strftime("%m/%d/%Y")
 
-    msg['From'] = 'samirf@wolfram.com'
-    msg['To'] = 'r-alphareports@wolfram.com' 
-    msg['Cc'] = 'overmann@wolfram.com'
-    msg['Subject'] = "Daily Report for %s"%(date) 
+    print configM['email']['to']
+    
+    msg['From'] = configM['email']['from']
+    msg['To'] = configM['email']['to'] 
+    msg['Cc'] = configM['email']['cc']
+    msg['Bcc'] = configM['email']['bcc']
+    msg['Subject'] =  configM['email']['bcc'] + str(date)
+
     part1=MIMEText(body ,'plain') 
     msg.attach(part1)
-    s = smtplib.SMTP('mail.wolfram.com')
+    s = smtplib.SMTP(configM['email']['smtp_host'])
     s.sendmail(msg['From'], msg['To'], msg.as_string())
     s.quit()
 
@@ -45,10 +49,12 @@ def post(msg):
     api.PostUpdate(msg)
 
 def getData():
+    ###TODO:  FIX date logica.
     now = datetime.datetime.now()
     ##zero out the hours
     now = datetime.datetime(now.year, now.month, now.day)
-    yesterday= datetime.datetime(now.year,now.month, (now.day - 1))
+    #yesterday= datetime.datetime(now.year,now.month, (now.day - 1))
+    yesterday= now
 
     #yesterday= now -
     #date = now.strftime("%m/%d/%Y")
@@ -95,6 +101,11 @@ def processConfig(config_file):
         email['host'] = config.get('Email','smtp_host')
         email['user'] = config.get('Email','smtp_user')
         email['pass'] = config.get('Email','smtp_pass')
+        email['from'] = config.get('Email','from')
+        email['to'] = config.get('Email','to')
+        email['cc'] = config.get('Email','cc')
+        email['bcc'] = config.get('Email','bcc')
+        email['subject'] = config.get('Email','subject')
         configM['email'] = email
     except:
         print("Could not read psql configuration... terminating")
@@ -106,6 +117,7 @@ def main():
     global password
     global host
     global configM
+    global report
 
     configM= {}
 
@@ -114,12 +126,14 @@ def main():
     p.add_option('--password', '-p', default="password",help="Twitter/Identi.ca password")
     p.add_option('--host', '-H', default="localhost",help="API URL")
     p.add_option('--config','-c',default="config.ini",help="Configuration file specifying misc defaults (mostly transport / email related)")
+    p.add_option('--report','-r',action="store_true", default=False,help="Only report, do not send email.")
 
     options, arguments = p.parse_args()
 
     user=options.user
     password=options.password
     host=options.host
+    report=options.report
 
     processConfig(options.config)
     if(password == "password"):
@@ -127,7 +141,9 @@ def main():
 
     conn()
     text= getData()
-    sendEmail(text)
+    if(report == True):
+        print "send email"
+        sendEmail(text)
 
 if __name__ == '__main__':
         main()
