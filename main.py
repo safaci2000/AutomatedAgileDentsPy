@@ -29,13 +29,13 @@ def sendEmail(body):
 
     msg['From'] = configM['email']['from']
     msg['To'] = configM['email']['to'] 
-    msg['Cc'] = configM['email']['cc']
-    msg['Bcc'] = configM['email']['bcc']
-    msg['Subject'] =  configM['email']['bcc'] + str(date)
+    msg['cc'] = configM['email']['cc']
+    msg['bcc'] = configM['email']['bcc']
+    msg['Subject'] =  configM['email']['subject'] + " %s"%(str(date))
 
     part1=MIMEText(body ,'plain') 
     msg.attach(part1)
-    s = smtplib.SMTP(configM['email']['smtp_host'])
+    s = smtplib.SMTP(configM['email']['host'])
     s.sendmail(msg['From'], msg['To'], msg.as_string())
     s.quit()
 
