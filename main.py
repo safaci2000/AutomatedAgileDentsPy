@@ -4,6 +4,7 @@ import smtplib
 from email.parser import Parser
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from time import mktime
 
 import datetime
 import optparse
@@ -26,8 +27,6 @@ def sendEmail(body):
     now = datetime.datetime.now()
     date = now.strftime("%m/%d/%Y")
 
-    print configM['email']['to']
-    
     msg['From'] = configM['email']['from']
     msg['To'] = configM['email']['to'] 
     msg['Cc'] = configM['email']['cc']
@@ -49,12 +48,15 @@ def post(msg):
     api.PostUpdate(msg)
 
 def getData():
-    ###TODO:  FIX date logica.
+    day = 86400
     now = datetime.datetime.now()
     ##zero out the hours
     now = datetime.datetime(now.year, now.month, now.day)
-    #yesterday= datetime.datetime(now.year,now.month, (now.day - 1))
-    yesterday= now
+    nows = mktime(now.timetuple())
+    if( now.weekday() == 0):
+        yesterday= datetime.datetime.fromtimestamp(nows - (day * 3)  )
+    else:
+        yesterday= datetime.datetime.fromtimestamp(nows - day )
 
     #yesterday= now -
     #date = now.strftime("%m/%d/%Y")
@@ -142,6 +144,8 @@ def main():
     conn()
     text= getData()
     if(report == True):
+        print text
+    else:
         print "send email"
         sendEmail(text)
 
