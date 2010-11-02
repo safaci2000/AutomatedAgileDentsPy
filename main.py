@@ -33,12 +33,11 @@ def sendEmail(body):
         host="%s:%s"%(cred['host'],cred['port'])
         if(cred['ssl']=="True"):
             mail = smtplib.SMTP_SSL(host)
-        if(cred['tls'] == "True"):
-            mail = smtplib.SMTP(host)
-            mail.starttls()
         else:
-            mail = smtplib.SMTP(cred['host'])
+            mail = smtplib.SMTP(host)
 
+        if(cred['tls'] == "True"):
+            mail.starttls()
 
         if(cred['pass'] != ""):
             mail.login(cred['user'],cred['pass'])
@@ -48,6 +47,8 @@ def sendEmail(body):
         #mail.quit()
         mail.close()
     except:
+        print("Failed to send email, here is the intended output:")
+        print (body)
 
 
 def post(msg):
