@@ -15,27 +15,39 @@ global api
 global configM
 
 def sendEmail(body):
+    cred= configM['email'] 
     msg = MIMEMultipart()
     now = datetime.datetime.now()
     date = now.strftime("%m/%d/%Y")
 
-    msg['From'] = configM['email']['from']
-    msg['To'] = configM['email']['to'] 
-    msg['cc'] = configM['email']['cc']
-    msg['bcc'] = configM['email']['bcc']
-    msg['Subject'] =  configM['email']['subject'] + " %s"%(str(date))
+    msg['From'] = cred['from']
+    msg['To'] = cred['to'] 
+    msg['cc'] = cred['cc']
+    msg['bcc'] = cred['bcc']
+    msg['Subject'] =  cred['subject'] + " %s"%(str(date))
 
     part1=MIMEText(body ,'plain') 
     msg.attach(part1)
-    s = smtplib.SMTP(configM['email']['host'])
 
-    if(configM['email']['pass'] != ""):
-        s.login(configM['email']['user'],configM['email']['pass'])
-    else:
-        print("No logging information provided, skipping smtp auth")
+    try:
+        host="%s:%s"%(cred['host'],cred['port'])
+        if(cred['ssl']=="True"):
+            mail = smtplib.SMTP_SSL(host)
+        if(cred['tls'] == "True"):
+            mail = smtplib.SMTP(host)
+            mail.starttls()
+        else:
+            mail = smtplib.SMTP(cred['host'])
 
-    s.sendmail(msg['From'], msg['To'], msg.as_string())
-    s.quit()
+
+        if(cred['pass'] != ""):
+            mail.login(cred['user'],cred['pass'])
+        else:
+            print("No logging information provided, skipping smtp auth")
+        mail.sendmail(msg['From'], msg['To'], msg.as_string())
+        #mail.quit()
+        mail.close()
+    except:
 
 
 def post(msg):
@@ -102,11 +114,14 @@ def processConfig(config_file):
         email['host'] = config.get('Email','smtp_host')
         email['user'] = config.get('Email','smtp_user')
         email['pass'] = config.get('Email','smtp_pass')
+        email['port'] = config.get('Email','smtp_port')
         email['from'] = config.get('Email','from')
         email['to'] = config.get('Email','to')
         email['cc'] = config.get('Email','cc')
         email['bcc'] = config.get('Email','bcc')
         email['subject'] = config.get('Email','subject')
+        email['ssl'] = config.get('Email','ssl')
+        email['tls'] = config.get('Email','tls')
         configM['email'] = email
     except:
         print("Could not read email configuration... terminating")
