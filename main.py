@@ -15,7 +15,7 @@ global api
 global configM
 
 def sendEmail(body):
-    cred= configM['email'] 
+    cred= configM['Email'] 
     msg = MIMEMultipart()
     now = datetime.datetime.now()
     date = now.strftime("%m/%d/%Y")
@@ -44,8 +44,8 @@ def sendEmail(body):
         else:
             print("No logging information provided, skipping smtp auth")
         mail.sendmail(msg['From'], msg['To'], msg.as_string())
-        #mail.quit()
         mail.close()
+
     except:
         print("Failed to send email, here is the intended output:")
         print (body)
@@ -123,7 +123,7 @@ def processConfig(config_file):
         email['subject'] = config.get('Email','subject')
         email['ssl'] = config.get('Email','ssl')
         email['tls'] = config.get('Email','tls')
-        configM['email'] = email
+        configM['Email'] = email
     except:
         print("Could not read email configuration... terminating")
         sys.exit(1)
@@ -138,6 +138,17 @@ def processConfig(config_file):
     except:
         print("Could not read Tweedentica configuration... terminating")
         sys.exit(1)
+
+    try:
+        #read ident section.
+        General = {} 
+        General['end_day'] = config.get('General','end_day')
+        configM['General'] = General
+    except:
+        print("Could not read General configuration... terminating")
+        sys.exit(1)
+
+
 
 
 def main():
