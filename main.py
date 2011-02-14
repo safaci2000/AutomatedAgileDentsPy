@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python2
 import twitter
 import smtplib
 from email.parser import Parser
@@ -148,12 +148,44 @@ def processConfig(config_file):
         print("Could not read General configuration... terminating")
         sys.exit(1)
 
+def zeroOutDate(aDate ):
+    return datetime.datetime(aDate.year, aDate.month, aDate.day)
 
+def doWeekly():
+    global configM
+    cred=configM['Tweedentica']
+    day = 86400
+
+    today = datetime.date.today()
+    sdate = today - datetime.timedelta(days=-today.weekday(), weeks=1)
+    sdate = sdate - datetime.timedelta(days=1)  ## traveling back to sunday.
+    sdate = zeroOutDate(sdate)
+    edate = sdate + datetime.timedelta(days=5 ) 
+    edate = zeroOutDate(edate)
+    print "running weekly report from %s to %s" %(sdate, edate) 
+
+    stime = mktime(sdate.timetuple())
+    etime = mktime(edate.timetuple())
+
+    status = api.GetUserTimeline(cred['user'])
+    tasks = [] 
+    for i in status:
+        t = datetime.datetime.fromtimestamp(i.created_at_in_seconds ) 
+        msg = "%s  * %s"%(t, i.text)
+        if (t >= sdate and t < edate ):
+            tasks.append(msg)
+
+    tasks.sort()    
+    text = ""
+    for i in tasks:
+       text += i + "\n"
+    return text
 
 
 def main():
     global configM
     global report
+    global weekly
 
     configM= {}
 
@@ -163,6 +195,7 @@ def main():
     p.add_option('--host', '-H', default="",help="API URL")
     p.add_option('--config','-c',default="config.ini",help="Configuration file specifying misc defaults (mostly transport / email related)")
     p.add_option('--report','-r',action="store_true", default=False,help="Only report, do not send email.")
+    p.add_option('--weekly','-w',action="store_true", default=False,help="Generate a weekly report for Mon-Fri of the previous week.")
 
     options, arguments = p.parse_args()
 
@@ -176,7 +209,8 @@ def main():
     if(options.host != ""):
         configM['Tweedentica']['host'] = options.host
 
-    report=options.report
+    report = options.report
+    weekly = options.weekly
 
     ##Allows for interactive input of pass
     if(configM['Tweedentica']['pass'] == "" ):
@@ -185,11 +219,16 @@ def main():
     conn()
     
     text= getData()
+
+    if(weekly == True):
+        print doWeekly()
+        return 
     if(report == True):
         print(text)
     else:
         print("send email")
         sendEmail(text)
+        print(text)
 
 if __name__ == '__main__':
         main()
