@@ -182,10 +182,42 @@ def doWeekly():
     return text
 
 
+def doMonthly():
+    global configM
+    cred=configM['Tweedentica']
+    day = 86400
+
+    today = datetime.date.today()
+    sdate = datetime.datetime(today.year, today.month-1 , 1)
+    edate = datetime.datetime(today.year, today.month, 1)
+    edate = edate - datetime.timedelta(days=1)
+
+    stime = mktime(sdate.timetuple())
+    etime = mktime(edate.timetuple())
+
+    status = api.GetUserTimeline(cred['user'])
+    tasks = [] 
+    print "Getting tasks between:  %s and %s" %(sdate, edate) 
+
+    for i in status:
+        t = datetime.datetime.fromtimestamp(i.created_at_in_seconds ) 
+        print t
+        msg = "%s  * %s"%(t, i.text)
+        if (t >= sdate and t < edate ):
+            tasks.append(msg)
+
+    tasks.sort()    
+    text = ""
+    for i in tasks:
+       text += i + "\n"
+    return text
+
+
 def main():
     global configM
     global report
     global weekly
+    global monthly
 
     configM= {}
 
@@ -196,6 +228,7 @@ def main():
     p.add_option('--config','-c',default="config.ini",help="Configuration file specifying misc defaults (mostly transport / email related)")
     p.add_option('--report','-r',action="store_true", default=False,help="Only report, do not send email.")
     p.add_option('--weekly','-w',action="store_true", default=False,help="Generate a weekly report for Mon-Fri of the previous week.")
+    p.add_option('--monthly','-m',action="store_true", default=False,help="Generate a monthly report for the 1st to the last day of the month.")
 
     options, arguments = p.parse_args()
 
@@ -211,6 +244,7 @@ def main():
 
     report = options.report
     weekly = options.weekly
+    monthly = options.monthly
 
     ##Allows for interactive input of pass
     if(configM['Tweedentica']['pass'] == "" ):
@@ -223,6 +257,9 @@ def main():
     if(weekly == True):
         print doWeekly()
         return 
+    if(monthly == True):
+        print doMonthly()
+        return
     if(report == True):
         print(text)
     else:
