@@ -160,7 +160,7 @@ def doWeekly():
     sdate = today - datetime.timedelta(days=-today.weekday(), weeks=1)
     sdate = sdate - datetime.timedelta(days=1)  ## traveling back to sunday.
     sdate = zeroOutDate(sdate)
-    edate = sdate + datetime.timedelta(days=5 ) 
+    edate = sdate + datetime.timedelta(days=6 ) 
     edate = zeroOutDate(edate)
     print "running weekly report from %s to %s" %(sdate, edate) 
 
