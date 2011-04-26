@@ -11,6 +11,8 @@ import optparse
 import getpass
 import ConfigParser
 import sys
+import base64
+
 global api
 global configM
 
@@ -114,7 +116,10 @@ def processConfig(config_file):
         email  = {} 
         email['host'] = config.get('Email','smtp_host')
         email['user'] = config.get('Email','smtp_user')
-        email['pass'] = config.get('Email','smtp_pass')
+        #email['pass'] = config.get('Email','smtp_pass')
+        tmp  = config.get('Email','smtp_pass')
+        email['pass'] = base64.b64decode(tmp)
+
         email['port'] = config.get('Email','smtp_port')
         email['from'] = config.get('Email','from')
         email['to'] = config.get('Email','to')
@@ -133,7 +138,8 @@ def processConfig(config_file):
         Tweedentica  = {} 
         Tweedentica['host'] = config.get('Tweedentica','host')
         Tweedentica['user'] = config.get('Tweedentica','user')
-        Tweedentica['pass'] = config.get('Tweedentica','pass')
+        tmp  = config.get('Tweedentica','pass')
+        Tweedentica['pass'] = base64.b64decode(tmp)
         configM['Tweedentica'] = Tweedentica
     except:
         print("Could not read Tweedentica configuration... terminating")
