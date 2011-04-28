@@ -188,6 +188,37 @@ def doWeekly():
     return text
 
 
+def doYearly():
+    global configM
+    cred=configM['Tweedentica']
+    day = 86400
+
+    today = datetime.date.today()
+    sdate = datetime.datetime(today.year, 1 , 1)
+    edate = datetime.datetime(today.year, 12, 31)
+
+    stime = mktime(sdate.timetuple())
+    etime = mktime(edate.timetuple())
+
+    status = api.GetUserTimeline(user=cred['user'], since=sdate, count=10000)
+    tasks = [] 
+    print "Getting tasks between:  %s and %s" %(sdate, edate) 
+
+    for i in status:
+        t = datetime.datetime.fromtimestamp(i.created_at_in_seconds ) 
+        msg = "%s  * %s"%(t, i.text)
+        if (t >= sdate and t < edate ):
+            tasks.append(msg)
+
+    tasks.sort()    
+    text = ""
+    for i in tasks:
+       text += i + "\n"
+    return text
+
+
+
+
 def doMonthly():
     global configM
     cred=configM['Tweedentica']
@@ -233,7 +264,8 @@ def main():
     p.add_option('--config','-c',default="config.ini",help="Configuration file specifying misc defaults (mostly transport / email related)")
     p.add_option('--report','-r',action="store_true", default=False,help="Only report, do not send email.")
     p.add_option('--weekly','-w',action="store_true", default=False,help="Generate a weekly report for Mon-Fri of the previous week.")
-    p.add_option('--monthly','-m',action="store_true", default=False,help="Generate a monthly report for the 1st to the last day of the month.")
+    p.add_option('--monthly','-m',action="store_true", default=False,help="Generate a monthly report from the 1st to the last day of the month.")
+    p.add_option('--yearly','-y',action="store_true", default=False,help="Generate a yearly report from the 1st of the year, to the last.")
 
     options, arguments = p.parse_args()
 
@@ -250,6 +282,7 @@ def main():
     report = options.report
     weekly = options.weekly
     monthly = options.monthly
+    yearly = options.yearly
 
     ##Allows for interactive input of pass
     if(configM['Tweedentica']['pass'] == "" ):
@@ -264,6 +297,9 @@ def main():
         return 
     if(monthly == True):
         print doMonthly()
+        return
+    if(yearly == True):
+        print doYearly()
         return
     if(report == True):
         print(text)
