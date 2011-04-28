@@ -201,13 +201,12 @@ def doMonthly():
     stime = mktime(sdate.timetuple())
     etime = mktime(edate.timetuple())
 
-    status = api.GetUserTimeline(cred['user'])
+    status = api.GetUserTimeline(user=cred['user'], since=sdate, count=1000)
     tasks = [] 
     print "Getting tasks between:  %s and %s" %(sdate, edate) 
 
     for i in status:
         t = datetime.datetime.fromtimestamp(i.created_at_in_seconds ) 
-        print t
         msg = "%s  * %s"%(t, i.text)
         if (t >= sdate and t < edate ):
             tasks.append(msg)
