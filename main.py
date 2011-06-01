@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 import twitter
 import smtplib
 from email.parser import Parser
@@ -95,6 +95,7 @@ def conn():
     global configM
     cred = configM['Tweedentica']
 
+    #api=twitter.Api(username=cred['user'], password=cred['pass'],base_url=cred['host'])
     api=twitter.Api(username=cred['user'], password=cred['pass'],twitterserver=cred['host'])
     api.SetSource('python')
 
